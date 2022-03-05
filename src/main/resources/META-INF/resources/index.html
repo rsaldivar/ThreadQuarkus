@@ -1,0 +1,148 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <title>Hibernate ORM with Panache quickstart - Quarkus</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/wingcss/0.1.8/wing.min.css"/>
+    <style>
+     table {
+  border-collapse: collapse;
+  border-spacing: 0;
+  width: 100%;
+  border: 1px solid #ddd;
+}
+
+th, td {
+  text-align: left;
+  padding: 8px;
+}
+        input[type=number] {
+            width: 100%;
+            padding: 12px 20px;
+            margin: 8px 0;
+            display: inline-block;
+            border: 1px solid_bitacora #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            -webkit-transition: .5s;
+            transition: .5s;
+            outline: 0;
+            font-family: 'Open Sans', serif;
+        }
+    </style>
+    <!-- Load AngularJS -->
+    <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.min.js"></script>
+    <script type="text/javascript">
+      var app = angular.module("Examen", []);
+
+      //Controller Part
+      app.controller("ExamenController", function ($scope, $http) {
+
+        //Initialize page with default data which is blank in this example
+        $scope.tdd_mca = [];
+
+        $scope.form = {
+          id: -1,
+          peticion_xml: ""
+        };
+
+        //Now load the data from server
+        _refreshPageData();
+
+        //HTTP POST/PUT methods for add/edit TDD_MCA
+        $scope.update = function () {
+          var method = "";
+          var url = "";
+          var data = {};
+          if ($scope.form.id == -1) {
+            //id_bitacora is absent so add TDD_MCA - POST operation
+            method = "POST";
+            url = '/entity/mca';
+          } else {
+            //If id_bitacora is present, it's edit operation - PUT operation
+            method = "PUT";
+            url = '/entity/mca/' + $scope.form.id;
+          }
+
+          $http({
+            method: method,
+            url: url,
+            data: angular.toJson(data),
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          }).then(_success, _error);
+        };
+
+        //HTTP DELETE- delete mca by id_bitacora
+        $scope.remove = function (mca) {
+          $http({
+            method: 'DELETE',
+            url: '/entity/mca/' + mca.id
+          }).then(_success, _error);
+        };
+
+        //In case of edit tdd_mca, populate form with fruit data
+        $scope.edit = function (mca) {
+          
+          $scope.form.correo = mca.peticion_xml;
+        };
+
+       /* Private Methods */
+        //HTTP GET- get all TDD_MCA collection
+        function _refreshPageData() {
+          $http({
+            method: 'GET',
+            url: '/entity/mca'
+          }).then(function successCallback(response) {
+            $scope.tdd_mca = response.data;
+          }, function errorCallback(response) {
+            console.log(response.statusText);
+          });
+        }
+
+        function _success(response) {
+          _refreshPageData();
+          _clearForm()
+        }
+
+        function _error(response) {
+          alert(response.data.message || response.statusText);
+        }
+
+        //Clear the form
+        function _clearForm() {
+          $scope.form.peticion_xml = "";
+          $scope.form.id = -1;
+        }
+      });
+    </script>
+</head>
+<body ng-app="Examen" ng-controller="ExamenController">
+
+<div class="container">
+    
+    <h3>Add/Edit a Correos</h3>
+    <form ng-submit="update()">
+      <div class="row">
+          <div class="col-6"><input type="text" placeholder="CORREO" ng-model="form.correo" size="60"/></div>
+      </div>
+        <input type="submit" value="Save"/>
+    </form>
+
+    <h3>DATA</h3>
+    <div class="row">
+        <div class="col-2">Resultados</div>
+    </div>
+    <div style="overflow-x:auto;">
+    <table>      
+      <tr ng-repeat="log in tdd_mca">      
+        <td>{{ log.correo }}</td>
+        <td><a ng-click="edit( log )" class="btn">Edit</a> <a ng-click="remove( log )" class="btn">Remove</a>
+        </td>
+      </tr>
+    </table></div>
+</div>
+
+</body>
+</html>
